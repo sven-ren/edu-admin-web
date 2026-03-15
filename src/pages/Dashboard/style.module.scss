@@ -610,6 +610,74 @@
   }
 }
 
+// 喂食弹窗样式
+.feedModalContent {
+  padding: 10px 0;
+}
+
+.feedModalTip {
+  color: $text-secondary;
+  margin-bottom: 15px;
+  font-size: 0.9rem;
+}
+
+.feedOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.feedOption {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  border-radius: 12px;
+  background: $bg-light;
+  border: 1px solid $border-color;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #e1f0fa;
+    border-color: $primary-color;
+    transform: translateX(5px);
+  }
+}
+
+.feedOptionEmoji {
+  font-size: 1.5rem;
+  margin-right: 12px;
+  width: 30px;
+  text-align: center;
+}
+
+.feedOptionName {
+  flex: 1;
+  font-weight: 500;
+  color: $text-primary;
+}
+
+.feedOptionPoints {
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 4px 10px;
+  border-radius: 20px;
+  min-width: 45px;
+  text-align: center;
+
+  &.positive {
+    color: $success-color;
+    background: #f0fff4;
+  }
+
+  &.negative {
+    color: $error-color;
+    background: #fff2f0;
+  }
+}
+
 // 底部导航
 .bottomNav {
   display: flex;

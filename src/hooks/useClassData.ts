@@ -22,6 +22,7 @@ interface UseClassDataReturn {
   updateActionItem: (index: number, field: 'name' | 'points', value: string | number) => void;
   addReward: (name: string, cost: number, emoji: string) => void;
   deleteReward: (rewardId: number) => void;
+  updateReward: (rewardId: number, field: 'name' | 'cost' | 'emoji', value: string | number) => void;
   updateClassName: (name: string) => void;
   updateStageThresholds: (thresholds: number[]) => void;
   toggleGroups: () => void;
@@ -29,6 +30,7 @@ interface UseClassDataReturn {
   feedPet: (studentId: number, petIndex: number, points: number) => { success: boolean; message: string; graduated?: boolean };
   adjustPoints: (studentId: number, delta: number) => void;
   batchAdjustPoints: (groupId: number | 'all', delta: number) => void;
+  redeemReward: (studentId: number, rewardCost: number) => boolean;
 }
 
 export const useClassData = (): UseClassDataReturn => {
@@ -49,7 +51,18 @@ export const useClassData = (): UseClassDataReturn => {
       return false;
     }
     currentUserRef.current = username;
-    setClassData(user.classes[classId]);
+    
+    // 数据迁移：为旧数据添加 availableBadges 字段
+    const classData = user.classes[classId];
+    const migratedData: ClassData = {
+      ...classData,
+      students: classData.students.map(s => ({
+        ...s,
+        availableBadges: s.availableBadges ?? s.badges?.length ?? 0,
+      })),
+    };
+    
+    setClassData(migratedData);
     setCurrentClassId(classId);
     return true;
   }, []);
@@ -295,6 +308,20 @@ export const useClassData = (): UseClassDataReturn => {
     });
   }, [classData]);
 
+  const updateReward = useCallback((rewardId: number, field: 'name' | 'cost' | 'emoji', value: string | number): void => {
+    if (!classData) return;
+
+    setClassData(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        rewards: prev.rewards.map(r =>
+          r.id === rewardId ? { ...r, [field]: field === 'cost' ? Number(value) || 0 : value } : r
+        ),
+      };
+    });
+  }, [classData]);
+
   const updateClassName = useCallback((name: string): void => {
     if (!classData) return;
 
@@ -367,7 +394,7 @@ export const useClassData = (): UseClassDataReturn => {
     setClassData(prev => {
       if (!prev) return null;
       
-      const newGrowth = pet.growth + Math.abs(points);
+      const newGrowth = pet.growth + points;
       let newStage = pet.stage;
 
       // 检查升级
@@ -398,10 +425,12 @@ export const useClassData = (): UseClassDataReturn => {
           return {
             ...s,
             pets: newPets,
-            points: Math.max(0, s.points - 1),
             badges: isGraduated && !pet.graduated 
               ? [...(s.badges || []), '🎓']
               : (s.badges || []),
+            availableBadges: isGraduated && !pet.graduated
+              ? (s.availableBadges || 0) + 1
+              : (s.availableBadges || 0),
           };
         }),
       };
@@ -481,6 +510,7 @@ export const useClassData = (): UseClassDataReturn => {
     updateActionItem,
     addReward,
     deleteReward,
+    updateReward,
     updateClassName,
     updateStageThresholds,
     toggleGroups,
@@ -488,5 +518,27 @@ export const useClassData = (): UseClassDataReturn => {
     feedPet,
     adjustPoints,
     batchAdjustPoints,
+    redeemReward: useCallback((studentId: number, rewardCost: number): boolean => {
+      if (!classData) return false;
+
+      const student = classData.students.find(s => s.id === studentId);
+      if (!student) return false;
+
+      const availableCount = student.availableBadges || 0;
+      if (availableCount < rewardCost) return false;
+
+      setClassData(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          students: prev.students.map(s =>
+            s.id === studentId
+              ? { ...s, availableBadges: (s.availableBadges || 0) - rewardCost }
+              : s
+          ),
+        };
+      });
+      return true;
+    }, [classData]),
   };
 };

@@ -128,6 +128,7 @@ export const createNewStudent = (
     avatar: randomPet.stages[0],
     points: 0,
     badges: [],
+    availableBadges: 0,
     pets: [{
       id: petId,
       petId: randomPet.id,

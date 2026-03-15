@@ -30,6 +30,7 @@ const Dashboard = ({ currentUser, onLogout }: DashboardProps) => {
     adjustPoints,
     batchAdjustPoints,
     addPet,
+    redeemReward,
   } = useClassData();
 
   const [currentGroupId, setCurrentGroupId] = useState<number | 'all'>('all');
@@ -173,38 +174,6 @@ const Dashboard = ({ currentUser, onLogout }: DashboardProps) => {
           </div>
         </Card>
 
-        {/* 统计卡片 */}
-        <div className={styles.statsGrid}>
-          <Card className={styles.statCard}>
-            <div className={styles.statIcon}>🥚</div>
-            <div>
-              <h3>{stats.eggs}</h3>
-              <p>待孵化</p>
-            </div>
-          </Card>
-          <Card className={styles.statCard}>
-            <div className={styles.statIcon}>🐟</div>
-            <div>
-              <h3>{stats.juvenile}</h3>
-              <p>成长中</p>
-            </div>
-          </Card>
-          <Card className={styles.statCard}>
-            <div className={styles.statIcon}>🎓</div>
-            <div>
-              <h3>{stats.graduate}</h3>
-              <p>毕业宠物</p>
-            </div>
-          </Card>
-          <Card className={styles.statCard}>
-            <div className={styles.statIcon}>🪙</div>
-            <div>
-              <h3>{stats.totalPoints}</h3>
-              <p>总积分</p>
-            </div>
-          </Card>
-        </div>
-
         {/* 批量操作栏 */}
         <Card className={styles.batchBar}>
           <div className={styles.groupTabs}>
@@ -240,34 +209,6 @@ const Dashboard = ({ currentUser, onLogout }: DashboardProps) => {
               - 批量减分
             </Button>
           </Space>
-        </Card>
-
-        {/* 快捷喂食栏 */}
-        <Card className={styles.feedBar}>
-          <span className={styles.feedTitle}>🍽️ 快捷喂食</span>
-          <div className={styles.feedItems}>
-            {classData.actionItems.map((item, index) => (
-              <div
-                key={index}
-                className={styles.feedItem}
-                onClick={() => {
-                  if (selectedStudentId) {
-                    const student = classData.students.find(s => s.id === selectedStudentId);
-                    const activePet = student?.pets.find(p => !p.graduated);
-                    if (activePet) {
-                      const petIndex = student!.pets.indexOf(activePet);
-                      handleFeedPet(selectedStudentId, petIndex, item.points);
-                    } else {
-                      message.warning('该学生没有可喂食的宠物');
-                    }
-                  }
-                }}
-              >
-                {item.emoji} {item.name}
-                <span className={styles.points}>{item.points > 0 ? '+' : ''}{item.points}</span>
-              </div>
-            ))}
-          </div>
         </Card>
 
         {/* 主内容区 */}
@@ -362,7 +303,7 @@ const Dashboard = ({ currentUser, onLogout }: DashboardProps) => {
                           <span key={i} className={styles.badge}>{b}</span>
                         ))}
                       </h2>
-                      <p>积分: {selectedStudent.points} · 宠物: {selectedStudent.pets.length}只 · 毕业: {selectedStudent.pets.filter(p => p.graduated).length}只</p>
+                      <p>积分: {selectedStudent.points} · 可用徽章: {selectedStudent.availableBadges || 0} · 宠物: {selectedStudent.pets.length}只 · 毕业: {selectedStudent.pets.filter(p => p.graduated).length}只</p>
                     </div>
                   </div>
                   <div className={styles.pointsBox}>
@@ -391,6 +332,7 @@ const Dashboard = ({ currentUser, onLogout }: DashboardProps) => {
                         key={pet.id}
                         pet={pet}
                         thresholds={classData.stageThresholds}
+                        actionItems={classData.actionItems}
                         onFeed={(points) => handleFeedPet(selectedStudent.id, index, points)}
                       />
                     ))}
@@ -400,6 +342,38 @@ const Dashboard = ({ currentUser, onLogout }: DashboardProps) => {
             ) : (
               <div className={styles.selectTip}>👈 从左侧选择一个学生</div>
             )}
+          </Card>
+        </div>
+
+        {/* 统计卡片 */}
+        <div className={styles.statsGrid}>
+          <Card className={styles.statCard}>
+            <div className={styles.statIcon}>🥚</div>
+            <div>
+              <h3>{stats.eggs}</h3>
+              <p>待孵化</p>
+            </div>
+          </Card>
+          <Card className={styles.statCard}>
+            <div className={styles.statIcon}>🐟</div>
+            <div>
+              <h3>{stats.juvenile}</h3>
+              <p>成长中</p>
+            </div>
+          </Card>
+          <Card className={styles.statCard}>
+            <div className={styles.statIcon}>🎓</div>
+            <div>
+              <h3>{stats.graduate}</h3>
+              <p>毕业宠物</p>
+            </div>
+          </Card>
+          <Card className={styles.statCard}>
+            <div className={styles.statIcon}>🪙</div>
+            <div>
+              <h3>{stats.totalPoints}</h3>
+              <p>总积分</p>
+            </div>
           </Card>
         </div>
 
@@ -429,6 +403,13 @@ const Dashboard = ({ currentUser, onLogout }: DashboardProps) => {
         onClose={() => setShopVisible(false)}
         students={classData.students}
         rewards={classData.rewards}
+        onBuy={(studentId, rewardCost) => {
+          const success = redeemReward(studentId, rewardCost);
+          if (success) {
+            saveClass(currentUser);
+          }
+          return success;
+        }}
       />
 
       <RankingModal
@@ -513,13 +494,15 @@ const StudentItem = ({ student, isSelected, onClick }: StudentItemProps) => {
 interface PetCardProps {
   pet: Pet;
   thresholds: number[];
+  actionItems: { name: string; points: number; emoji: string }[];
   onFeed: (points: number) => void;
 }
 
-const PetCard = ({ pet, thresholds, onFeed }: PetCardProps) => {
+const PetCard = ({ pet, thresholds, actionItems, onFeed }: PetCardProps) => {
   const petData = SEA_PETS.find(p => p.id === pet.petId);
   const progress = getPetProgress(pet, thresholds);
   const stageDisplay = getPetStageDisplay(pet);
+  const [feedModalVisible, setFeedModalVisible] = useState(false);
   
   // 根据阶段获取动画类名
   const getAnimationClass = () => {
@@ -529,48 +512,83 @@ const PetCard = ({ pet, thresholds, onFeed }: PetCardProps) => {
   
   // 计算等级（1-5）
   const level = pet.graduated ? 5 : pet.stage + 1;
+
+  const handleFeedClick = (points: number) => {
+    onFeed(points);
+    setFeedModalVisible(false);
+  };
   
   return (
-    <div className={`${styles.petCard} ${pet.graduated ? styles.graduated : ''}`}>
-      {/* 等级标签 - 左上角 */}
-      <div className={styles.levelBadge}>Lv{level}</div>
-      
-      {pet.graduated && <div className={styles.graduatedBadge}>🎓 毕业</div>}
-      
-      {/* 宠物展示区 - 居中且更大 */}
-      <div className={styles.petDisplay}>
-        {stageDisplay.type === 'image' ? (
-          <img 
-            src={stageDisplay.value} 
-            alt={petData?.name} 
-            className={`${styles.petImageLarge} ${getAnimationClass()}`}
-          />
-        ) : (
-          <span className={`${styles.petEmojiLarge} ${getAnimationClass()}`}>{stageDisplay.value}</span>
+    <>
+      <div className={`${styles.petCard} ${pet.graduated ? styles.graduated : ''}`}>
+        {/* 等级标签 - 左上角 */}
+        <div className={styles.levelBadge}>Lv{level}</div>
+        
+        {pet.graduated && <div className={styles.graduatedBadge}>🎓 毕业</div>}
+        
+        {/* 宠物展示区 - 居中且更大 */}
+        <div className={styles.petDisplay}>
+          {stageDisplay.type === 'image' ? (
+            <img 
+              src={stageDisplay.value} 
+              alt={petData?.name} 
+              className={`${styles.petImageLarge} ${getAnimationClass()}`}
+            />
+          ) : (
+            <span className={`${styles.petEmojiLarge} ${getAnimationClass()}`}>{stageDisplay.value}</span>
+          )}
+        </div>
+        
+        <div className={styles.petInfo}>
+          <div className={styles.petName}>{pet.customName}</div>
+          <div className={styles.petSpecies}>{petData?.name}</div>
+        </div>
+        
+        <div className={styles.growthBar}>
+          <div className={styles.progress}>
+            <div className={styles.fill} style={{ width: `${progress}%` }} />
+          </div>
+          <div className={styles.growthInfo}>
+            <span>成长值: {pet.growth}</span>
+            <span>{pet.graduated ? '已毕业' : `下一级: ${thresholds[Math.min(pet.stage + 1, 4)]}`}</span>
+          </div>
+        </div>
+        
+        {!pet.graduated && (
+          <Button className={styles.feedBtn} onClick={() => setFeedModalVisible(true)}>
+            🍽️ 喂食
+          </Button>
         )}
       </div>
-      
-      <div className={styles.petInfo}>
-        <div className={styles.petName}>{pet.customName}</div>
-        <div className={styles.petSpecies}>{petData?.name}</div>
-      </div>
-      
-      <div className={styles.growthBar}>
-        <div className={styles.progress}>
-          <div className={styles.fill} style={{ width: `${progress}%` }} />
+
+      {/* 喂食弹窗 */}
+      <Modal
+        title={`🍽️ 喂食 ${pet.customName}`}
+        open={feedModalVisible}
+        onCancel={() => setFeedModalVisible(false)}
+        footer={null}
+        width={400}
+      >
+        <div className={styles.feedModalContent}>
+          <p className={styles.feedModalTip}>选择行为调整宠物成长值：</p>
+          <div className={styles.feedOptions}>
+            {actionItems.map((item, index) => (
+              <div
+                key={index}
+                className={styles.feedOption}
+                onClick={() => handleFeedClick(item.points)}
+              >
+                <span className={styles.feedOptionEmoji}>{item.emoji}</span>
+                <span className={styles.feedOptionName}>{item.name}</span>
+                <span className={`${styles.feedOptionPoints} ${item.points > 0 ? styles.positive : styles.negative}`}>
+                  {item.points > 0 ? '+' : ''}{item.points}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className={styles.growthInfo}>
-          <span>成长值: {pet.growth}</span>
-          <span>{pet.graduated ? '已毕业' : `下一级: ${thresholds[Math.min(pet.stage + 1, 4)]}`}</span>
-        </div>
-      </div>
-      
-      {!pet.graduated && (
-        <Button className={styles.feedBtn} onClick={() => onFeed(5)}>
-          🍽️ 喂食
-        </Button>
-      )}
-    </div>
+      </Modal>
+    </>
   );
 };
 

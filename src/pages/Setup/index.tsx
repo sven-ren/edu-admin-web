@@ -35,6 +35,7 @@ const Setup = ({ currentUser }: SetupProps) => {
     updateActionItem,
     addReward,
     deleteReward,
+    updateReward,
     updateClassName,
     updateStageThresholds,
     toggleGroups,
@@ -58,6 +59,9 @@ const Setup = ({ currentUser }: SetupProps) => {
   const [newRewardName, setNewRewardName] = useState('');
   const [newRewardCost, setNewRewardCost] = useState<number>(50);
   const [newRewardEmoji, setNewRewardEmoji] = useState('🎁');
+
+  // 编辑奖励状态
+  const [editingRewardId, setEditingRewardId] = useState<number | null>(null);
 
   // 分配分组弹窗状态
   const [assignGroupModalVisible, setAssignGroupModalVisible] = useState(false);
@@ -392,15 +396,23 @@ const Setup = ({ currentUser }: SetupProps) => {
                 <div className={`${styles.rewardEmoji} ${reward.name === '免一次作业' ? styles['font-1rem'] : ''}`}>{reward.emoji}</div>
                 <div className={styles.rewardInfo}>
                   <div>{reward.name}</div>
-                  <div className={styles.rewardCost}>{reward.cost} 积分</div>
+                  <div className={styles.rewardCost}>{reward.cost} 徽章</div>
                 </div>
-                <Button
-                  type="text"
-                  danger
-                  size="small"
-                  icon={<DeleteOutlined />}
-                  onClick={() => deleteReward(reward.id)}
-                />
+                <Space>
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={<EditOutlined />}
+                    onClick={() => setEditingRewardId(reward.id)}
+                  />
+                  <Button
+                    type="text"
+                    danger
+                    size="small"
+                    icon={<DeleteOutlined />}
+                    onClick={() => deleteReward(reward.id)}
+                  />
+                </Space>
               </Card>
             ))}
             <Button
@@ -493,7 +505,7 @@ const Setup = ({ currentUser }: SetupProps) => {
             />
           </div>
           <div>
-            <label>所需积分</label>
+            <label>所需徽章</label>
             <Input
               type="number"
               value={newRewardCost}
@@ -512,6 +524,52 @@ const Setup = ({ currentUser }: SetupProps) => {
             />
           </div>
         </Space>
+      </Modal>
+
+      {/* 编辑奖励弹窗 */}
+      <Modal
+        title="编辑奖励"
+        open={editingRewardId !== null}
+        onOk={() => setEditingRewardId(null)}
+        onCancel={() => setEditingRewardId(null)}
+        okText="完成"
+        cancelText="取消"
+      >
+        {(() => {
+          const reward = classData.rewards.find(r => r.id === editingRewardId);
+          if (!reward) return null;
+          return (
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <div>
+                <label>奖励名称</label>
+                <Input
+                  value={reward.name}
+                  onChange={(e) => updateReward(reward.id, 'name', e.target.value)}
+                  placeholder="例如：小零食"
+                />
+              </div>
+              <div>
+                <label>所需徽章</label>
+                <Input
+                  type="number"
+                  value={reward.cost}
+                  onChange={(e) => updateReward(reward.id, 'cost', parseInt(e.target.value) || 0)}
+                  placeholder="例如：50"
+                  min={1}
+                />
+              </div>
+              <div>
+                <label>图标</label>
+                <Input
+                  value={reward.emoji}
+                  onChange={(e) => updateReward(reward.id, 'emoji', e.target.value)}
+                  placeholder="例如：🎁"
+                  style={{ width: 80 }}
+                />
+              </div>
+            </Space>
+          );
+        })()}
       </Modal>
 
       {/* 分配分组弹窗 */}
