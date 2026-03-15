@@ -1,0 +1,119 @@
+@use '@/styles/variables.scss' as *;
+
+.loginPage {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background: linear-gradient(145deg, $primary-color, $primary-dark);
+  z-index: 10;
+}
+
+.loginCard {
+  width: 100%;
+  max-width: 420px;
+  background: $white;
+  border-radius: 30px;
+  box-shadow: $shadow-xl;
+  overflow: hidden;
+  z-index: 20;
+  margin: 20px;
+  position: relative;
+}
+
+.cardHeader {
+  background: $white;
+  padding: 40px 20px 20px;
+  text-align: center;
+
+  .headerIcon {
+    font-size: 6rem;
+    line-height: 1;
+    margin-bottom: 10px;
+  }
+
+  h1 {
+    font-size: $font-size-6xl;
+    font-weight: 700;
+    color: $text-primary;
+    margin-bottom: 5px;
+  }
+
+  .subtitle {
+    font-size: $font-size-md;
+    color: $text-secondary;
+    letter-spacing: 1px;
+  }
+}
+
+.cardBody {
+  padding: 30px 30px 40px;
+}
+
+.form {
+  :global {
+    .ant-form-item {
+      margin-bottom: 16px;
+    }
+
+    .ant-input-affix-wrapper {
+      border-radius: 12px;
+      padding: 8px 11px;
+    }
+
+    .ant-select-selector {
+      border-radius: 12px !important;
+      padding: 8px 11px !important;
+      height: auto !important;
+    }
+  }
+}
+
+.submitBtn {
+  height: 48px;
+  font-size: 1.1rem;
+  border-radius: 30px;
+  margin-top: 10px;
+}
+
+.forgotRow {
+  text-align: center;
+  margin: 15px 0 20px;
+
+  a {
+    color: $text-secondary;
+    font-size: $font-size-base;
+    cursor: pointer;
+
+    &:hover {
+      color: $primary-color;
+    }
+  }
+}
+
+@media (max-width: $breakpoint-sm) {
+  .loginCard {
+    margin: 10px;
+    border-radius: 20px;
+  }
+
+  .cardHeader {
+    padding: 30px 15px 15px;
+
+    .headerIcon {
+      font-size: 4rem;
+    }
+
+    h1 {
+      font-size: $font-size-4xl;
+    }
+  }
+
+  .cardBody {
+    padding: 20px 20px 30px;
+  }
+}

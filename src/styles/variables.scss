@@ -1,0 +1,72 @@
+// 主色调
+$primary-color: #4a90e2;
+$primary-dark: #2c7ac9;
+$primary-light: #6aa9f0;
+$primary-bg: #f5f9ff;
+
+// 功能色
+$success-color: #27ae60;
+$success-dark: #219a52;
+$warning-color: #e67e22;
+$warning-dark: #d35400;
+$error-color: #c62828;
+$gold-color: #ffd700;
+$silver-color: #c0c0c0;
+$bronze-color: #cd7f32;
+
+// 中性色
+$text-primary: #333;
+$text-secondary: #666;
+$text-muted: #999;
+$border-color: #e6f0fa;
+$border-light: #f0f7fb;
+$bg-light: #f9fcff;
+$white: #fff;
+
+// 阴影
+$shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 12px rgba(0, 0, 0, 0.03);
+$shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.1);
+$shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.2);
+
+// 圆角
+$radius-sm: 8px;
+$radius-md: 12px;
+$radius-lg: 16px;
+$radius-xl: 20px;
+$radius-full: 50%;
+
+// 间距
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 12px;
+$spacing-lg: 16px;
+$spacing-xl: 20px;
+$spacing-2xl: 24px;
+$spacing-3xl: 30px;
+$spacing-4xl: 40px;
+
+// 字体
+$font-family: 'Segoe UI', 'Quicksand', system-ui, sans-serif;
+$font-size-xs: 0.75rem;
+$font-size-sm: 0.85rem;
+$font-size-base: 0.95rem;
+$font-size-md: 1rem;
+$font-size-lg: 1.1rem;
+$font-size-xl: 1.2rem;
+$font-size-2xl: 1.4rem;
+$font-size-3xl: 1.5rem;
+$font-size-4xl: 2rem;
+$font-size-5xl: 2.2rem;
+$font-size-6xl: 2.5rem;
+
+// 断点
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;
+
+// 动画
+$transition-fast: 0.2s ease;
+$transition-base: 0.3s ease;
+$transition-slow: 0.5s ease;

@@ -1,0 +1,134 @@
+@use '@/styles/variables.scss' as *;
+
+// ShopModal
+.studentSelect {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.rewardsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.rewardCard {
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: $primary-color;
+    transform: translateY(-2px);
+  }
+
+  :global {
+    .ant-card-body {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 15px;
+    }
+  }
+}
+
+.rewardEmoji {
+  font-size: 2.5rem;
+  background: $white;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  border: 2px solid $border-color;
+}
+
+.rewardInfo {
+  flex: 1;
+}
+
+.rewardName {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 5px;
+}
+
+.rewardCost {
+  color: $success-color;
+  font-weight: 600;
+}
+
+// RankingModal
+.rankingList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.empty {
+  text-align: center;
+  padding: 40px;
+  color: $text-muted;
+}
+
+.rankingItem {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 12px;
+  background: $bg-light;
+  border-radius: 16px;
+}
+
+.rankingRank {
+  width: 36px;
+  height: 36px;
+  background: $primary-color;
+  color: $white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1rem;
+
+  &.gold {
+    background: $gold-color;
+    color: $text-primary;
+  }
+
+  &.silver {
+    background: $silver-color;
+    color: $white;
+  }
+
+  &.bronze {
+    background: $bronze-color;
+    color: $white;
+  }
+}
+
+.rankingInfo {
+  flex: 1;
+}
+
+.rankingName {
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+
+.rankingBadges {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  font-size: 1.2rem;
+}
+
+.rankingCount {
+  font-weight: 600;
+  color: $primary-color;
+}

@@ -1,0 +1,104 @@
+@use '@/styles/variables.scss' as *;
+
+.header {
+  background: $white;
+  padding: 10px 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: $shadow-sm;
+  border-bottom: 1px solid $border-color;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.logoIcon {
+  font-size: 2.2rem;
+}
+
+.logoText {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: $text-primary;
+}
+
+.userMenu {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: $border-light;
+  padding: 6px 16px;
+  border-radius: 30px;
+}
+
+.userAvatar {
+  font-size: 1.4rem;
+}
+
+.userName {
+  font-weight: 600;
+  color: $primary-dark;
+}
+
+.classBadge {
+  background: $primary-color;
+  color: $white;
+  border: none;
+  border-radius: 30px;
+  font-weight: 600;
+
+  &:hover {
+    background: $primary-dark !important;
+    color: $white !important;
+  }
+}
+
+.logoutBtn {
+  background: $border-light;
+  border: 1px solid $border-color;
+  border-radius: 30px;
+  color: $text-secondary;
+
+  &:hover {
+    background: $primary-color !important;
+    color: $white !important;
+    border-color: $primary-color !important;
+  }
+}
+
+@media (max-width: $breakpoint-md) {
+  .header {
+    padding: 10px 15px;
+  }
+
+  .logoText {
+    font-size: 1.1rem;
+  }
+
+  .userInfo {
+    padding: 6px 10px;
+  }
+
+  .userName {
+    display: none;
+  }
+}

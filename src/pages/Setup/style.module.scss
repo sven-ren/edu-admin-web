@@ -1,0 +1,263 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  min-height: 100vh;
+  width: 100%;
+  background: $primary-bg;
+  padding: 40px 20px;
+}
+
+.content {
+  max-width: 1000px;
+  margin: 0 auto;
+  background: $white;
+  border-radius: 30px;
+  box-shadow: $shadow-lg;
+  padding: 40px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+
+  h2 {
+    color: $text-primary;
+    margin-bottom: 10px;
+  }
+}
+
+.section {
+  margin-bottom: 30px;
+  border-radius: 20px;
+
+  :global {
+    .ant-card-body {
+      padding: 20px;
+    }
+  }
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+// 阶段输入
+.stageInputs {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin: 15px 0;
+}
+
+.stageInput {
+  flex: 1;
+  min-width: 80px;
+
+  label {
+    font-size: $font-size-sm;
+    color: $text-secondary;
+    margin-bottom: 5px;
+    display: block;
+  }
+
+  input {
+    text-align: center;
+  }
+}
+
+.tip {
+  font-size: $font-size-sm;
+  color: $primary-color;
+  background: #e1f0fa;
+  padding: 10px 15px;
+  border-radius: 12px;
+  margin-top: 10px;
+}
+
+// 项目配置
+.itemsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  margin-top: 15px;
+
+  @media (max-width: $breakpoint-md) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.itemCard {
+  :global {
+    .ant-card-body {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+    }
+  }
+}
+
+.itemIcon {
+  font-size: 2rem;
+  background: $white;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid $border-color;
+}
+
+.itemInputs {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+// 学生名单
+.batchImport {
+  background: $bg-light;
+  padding: 20px;
+  border-radius: 16px;
+  margin-bottom: 20px;
+
+  textarea {
+    margin: 10px 0;
+  }
+}
+
+.addStudentRow {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+// 分组管理
+.toggleRow {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.addGroupRow {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.groupsList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.groupCard {
+  :global {
+    .ant-card-body {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+    }
+  }
+
+  span:first-child {
+    font-size: 1.5rem;
+  }
+
+  span:nth-child(2) {
+    flex: 1;
+    margin-left: 10px;
+    font-weight: 500;
+  }
+}
+
+// 奖励设置
+.rewardsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.rewardCard {
+  :global {
+    .ant-card-body {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+    }
+  }
+}
+
+.rewardEmoji {
+  font-size: 2rem;
+  background: $white;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid $border-color;
+  &.font-1rem {
+    font-size: 1rem;
+  }
+}
+
+.rewardInfo {
+  flex: 1;
+}
+
+.rewardCost {
+  color: $success-color;
+  font-weight: 600;
+}
+
+.addRewardBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 74px;
+  border-style: dashed;
+}
+
+// 操作按钮
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 40px;
+
+  button {
+    height: 50px;
+    padding: 0 40px;
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: $breakpoint-md) {
+  .content {
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .itemsGrid,
+  .rewardsGrid,
+  .groupsList {
+    grid-template-columns: 1fr;
+  }
+
+  .addGroupRow {
+    flex-direction: column;
+
+    input:last-of-type {
+      width: 100% !important;
+    }
+  }
+}
