@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { storageService } from '@/services/storage';
 import { createDefaultClassData, createNewStudent, createNewPet } from '@/utils/helpers';
-import type { ClassData, Student, Group, Reward, ActionItem, Pet } from '@/types';
+import { DEFAULT_SEA_PETS } from '@/types';
+import type { ClassData, Student, Group, Reward, ActionItem, Pet, SeaPet } from '@/types';
 
 interface UseClassDataReturn {
   classData: ClassData | null;
@@ -26,11 +27,16 @@ interface UseClassDataReturn {
   updateClassName: (name: string) => void;
   updateStageThresholds: (thresholds: number[]) => void;
   toggleGroups: () => void;
+  // 宠物管理
   addPet: (studentId: number, petTypeId?: string) => void;
+  addCustomPet: (pet: SeaPet) => void;
+  updateCustomPet: (petId: string, pet: Partial<SeaPet>) => void;
+  deleteCustomPet: (petId: string) => void;
   feedPet: (studentId: number, petIndex: number, points: number) => { success: boolean; message: string; graduated?: boolean };
   adjustPoints: (studentId: number, delta: number) => void;
   batchAdjustPoints: (groupId: number | 'all', delta: number) => void;
   redeemReward: (studentId: number, rewardCost: number) => boolean;
+  getAllPets: () => SeaPet[];
 }
 
 export const useClassData = (): UseClassDataReturn => {
@@ -52,7 +58,7 @@ export const useClassData = (): UseClassDataReturn => {
     }
     currentUserRef.current = username;
     
-    // 数据迁移：为旧数据添加 availableBadges 字段
+    // 数据迁移：为旧数据添加 availableBadges 字段和 customPets
     const classData = user.classes[classId];
     const migratedData: ClassData = {
       ...classData,
@@ -60,6 +66,7 @@ export const useClassData = (): UseClassDataReturn => {
         ...s,
         availableBadges: s.availableBadges ?? s.badges?.length ?? 0,
       })),
+      customPets: classData.customPets || [],
     };
     
     setClassData(migratedData);
@@ -87,7 +94,7 @@ export const useClassData = (): UseClassDataReturn => {
   const addStudent = useCallback((name: string, groupId?: number | null): void => {
     if (!classData) return;
     
-    const newStudent = createNewStudent(name, classData.nextStudentId, classData.nextPetId, groupId);
+    const newStudent = createNewStudent(name, classData.nextStudentId, classData.nextPetId, groupId, getAllPets());
     
     setClassData(prev => {
       if (!prev) return null;
@@ -109,7 +116,7 @@ export const useClassData = (): UseClassDataReturn => {
 
     names.forEach(name => {
       if (name.trim()) {
-        newStudents.push(createNewStudent(name.trim(), nextStudentId, nextPetId));
+        newStudents.push(createNewStudent(name.trim(), nextStudentId, nextPetId, null, getAllPets()));
         nextStudentId++;
         nextPetId++;
       }
@@ -349,13 +356,20 @@ export const useClassData = (): UseClassDataReturn => {
     });
   }, [classData]);
 
+  // 获取所有可用宠物（内置 + 自定义）
+  const getAllPets = useCallback((): SeaPet[] => {
+    if (!classData) return [];
+    return [...DEFAULT_SEA_PETS, ...(classData.customPets || [])];
+  }, [classData]);
+
   const addPet = useCallback((studentId: number, petTypeId?: string): void => {
     if (!classData) return;
 
     const newPet = createNewPet(
       classData.students.find(s => s.id === studentId)?.name || '',
       classData.nextPetId,
-      petTypeId
+      petTypeId,
+      getAllPets()
     );
 
     setClassData(prev => {
@@ -368,6 +382,47 @@ export const useClassData = (): UseClassDataReturn => {
             : s
         ),
         nextPetId: prev.nextPetId + 1,
+      };
+    });
+  }, [classData, getAllPets]);
+
+  // 添加自定义宠物
+  const addCustomPet = useCallback((pet: SeaPet): void => {
+    if (!classData) return;
+
+    setClassData(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        customPets: [...(prev.customPets || []), pet],
+      };
+    });
+  }, [classData]);
+
+  // 更新自定义宠物
+  const updateCustomPet = useCallback((petId: string, updates: Partial<SeaPet>): void => {
+    if (!classData) return;
+
+    setClassData(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        customPets: (prev.customPets || []).map(p =>
+          p.id === petId ? { ...p, ...updates } : p
+        ),
+      };
+    });
+  }, [classData]);
+
+  // 删除自定义宠物
+  const deleteCustomPet = useCallback((petId: string): void => {
+    if (!classData) return;
+
+    setClassData(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        customPets: (prev.customPets || []).filter(p => p.id !== petId),
       };
     });
   }, [classData]);
@@ -514,7 +569,11 @@ export const useClassData = (): UseClassDataReturn => {
     updateClassName,
     updateStageThresholds,
     toggleGroups,
+    // 宠物管理
     addPet,
+    addCustomPet,
+    updateCustomPet,
+    deleteCustomPet,
     feedPet,
     adjustPoints,
     batchAdjustPoints,
@@ -540,5 +599,6 @@ export const useClassData = (): UseClassDataReturn => {
       });
       return true;
     }, [classData]),
+    getAllPets,
   };
 };

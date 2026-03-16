@@ -1,5 +1,5 @@
-import { SEA_PETS, ACTION_ITEM_EMOJIS } from '@/types';
-import type { ClassData, Student, Pet, ActionItem } from '@/types';
+import { DEFAULT_SEA_PETS, ACTION_ITEM_EMOJIS } from '@/types';
+import type { ClassData, Student, Pet, ActionItem, SeaPet } from '@/types';
 
 // 生成唯一ID
 export const generateId = (prefix: string): string => {
@@ -7,28 +7,32 @@ export const generateId = (prefix: string): string => {
 };
 
 // 获取随机宠物
-export const getRandomPet = () => {
-  return SEA_PETS[Math.floor(Math.random() * SEA_PETS.length)];
+export const getRandomPet = (allPets?: SeaPet[]) => {
+  const pets = allPets || DEFAULT_SEA_PETS;
+  return pets[Math.floor(Math.random() * pets.length)];
 };
 
 // 获取宠物当前阶段的表情或图片
-export const getPetEmoji = (pet: Pet): string => {
-  const petData = SEA_PETS.find(p => p.id === pet.petId);
+export const getPetEmoji = (pet: Pet, allPets?: SeaPet[]): string => {
+  const pets = allPets || DEFAULT_SEA_PETS;
+  const petData = pets.find(p => p.id === pet.petId);
   if (!petData) return '🥚';
   if (pet.graduated) return '🎓';
   const stage = petData.stages[pet.stage];
-  // 如果是图片路径，则返回默认emoji（用于非展示场景）
-  if (stage?.startsWith('/')) return '🥚';
+  // 如果是 base64 图片或图片路径，则返回默认emoji（用于非展示场景）
+  if (stage?.startsWith('data:image') || stage?.startsWith('/')) return '🥚';
   return stage || '🥚';
 };
 
-// 获取宠物当前阶段的展示内容（emoji或图片URL）
-export const getPetStageDisplay = (pet: Pet): { type: 'emoji' | 'image'; value: string } => {
-  const petData = SEA_PETS.find(p => p.id === pet.petId);
+// 获取宠物当前阶段的展示内容（emoji或图片URL/base64）
+export const getPetStageDisplay = (pet: Pet, allPets?: SeaPet[]): { type: 'emoji' | 'image'; value: string } => {
+  const pets = allPets || DEFAULT_SEA_PETS;
+  const petData = pets.find(p => p.id === pet.petId);
   if (!petData) return { type: 'emoji', value: '🥚' };
   if (pet.graduated) return { type: 'emoji', value: '🎓' };
   const stage = petData.stages[pet.stage];
-  if (stage?.startsWith('/')) {
+  // 支持 base64 图片和路径图片
+  if (stage?.startsWith('data:image') || stage?.startsWith('/')) {
     return { type: 'image', value: stage };
   }
   return { type: 'emoji', value: stage || '🥚' };
@@ -110,6 +114,7 @@ export const createDefaultClassData = (className: string): ClassData => {
     nextGroupId: 3,
     nextRewardId: 5,
     nextPetId: 1,
+    customPets: [],
   };
 };
 
@@ -118,9 +123,11 @@ export const createNewStudent = (
   name: string, 
   studentId: number, 
   petId: number,
-  groupId: number | null = null
+  groupId: number | null = null,
+  allPets?: SeaPet[]
 ): Student => {
-  const randomPet = getRandomPet();
+  const pets = allPets || DEFAULT_SEA_PETS;
+  const randomPet = getRandomPet(pets);
   return {
     id: studentId,
     name: name.trim(),
@@ -142,10 +149,11 @@ export const createNewStudent = (
 };
 
 // 创建新宠物
-export const createNewPet = (studentName: string, petId: number, petTypeId?: string): Pet => {
+export const createNewPet = (studentName: string, petId: number, petTypeId?: string, allPets?: SeaPet[]): Pet => {
+  const pets = allPets || DEFAULT_SEA_PETS;
   const petData = petTypeId 
-    ? SEA_PETS.find(p => p.id === petTypeId) 
-    : getRandomPet();
+    ? pets.find(p => p.id === petTypeId) 
+    : getRandomPet(pets);
   if (!petData) {
     throw new Error(`无效的宠物类型: ${petTypeId}`);
   }
@@ -186,4 +194,14 @@ export const validateClassData = (data: Partial<ClassData>): string[] => {
   }
   
   return errors;
+};
+
+// 将文件转换为 base64
+export const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = error => reject(error);
+  });
 };

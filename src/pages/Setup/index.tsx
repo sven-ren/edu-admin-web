@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Button, Input, Card, Switch, Table, message, Space, Typography, Modal, Radio, Select } from 'antd';
-import { PlusOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
+import { Button, Input, Card, Switch, Table, message, Space, Typography, Modal, Radio, Select, Upload, Row, Col } from 'antd';
+import { PlusOutlined, DeleteOutlined, EditOutlined, UploadOutlined } from '@ant-design/icons';
 
 import { useClassData } from '@/hooks/useClassData';
+import { fileToBase64 } from '@/utils/helpers';
+import type { SeaPet } from '@/types';
 import styles from './style.module.scss';
 
 const { Title, Text } = Typography;
@@ -12,6 +14,8 @@ const { TextArea } = Input;
 interface SetupProps {
   currentUser: string;
 }
+
+const STAGE_NAMES = ['蛋阶段', '孵化阶段', '幼年阶段', '青年阶段', '毕业阶段'];
 
 const Setup = ({ currentUser }: SetupProps) => {
   const navigate = useNavigate();
@@ -39,6 +43,10 @@ const Setup = ({ currentUser }: SetupProps) => {
     updateClassName,
     updateStageThresholds,
     toggleGroups,
+    addCustomPet,
+    updateCustomPet,
+    deleteCustomPet,
+    getAllPets,
 
   } = useClassData();
 
@@ -67,6 +75,19 @@ const Setup = ({ currentUser }: SetupProps) => {
   const [assignGroupModalVisible, setAssignGroupModalVisible] = useState(false);
   const [assigningStudent, setAssigningStudent] = useState<{ id: number; name: string; groupId: number | null } | null>(null);
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
+
+  // 宠物管理状态
+  const [petModalVisible, setPetModalVisible] = useState(false);
+  const [editingPet, setEditingPet] = useState<SeaPet | null>(null);
+  const [petForm, setPetForm] = useState<{
+    id: string;
+    name: string;
+    stages: string[];
+  }>({
+    id: '',
+    name: '',
+    stages: ['', '', '', '', ''],
+  });
 
   useEffect(() => {
     if (!currentUser || !classId) {
@@ -123,6 +144,103 @@ const Setup = ({ currentUser }: SetupProps) => {
     saveClass(currentUser);
     message.success('班级设置已保存');
     navigate('/dashboard', { state: { classId } });
+  };
+
+  // 打开添加宠物弹窗
+  const openAddPetModal = () => {
+    setEditingPet(null);
+    setPetForm({
+      id: `custom_${Date.now()}`,
+      name: '',
+      stages: ['', '', '', '', ''],
+    });
+    setPetModalVisible(true);
+  };
+
+  // 打开编辑宠物弹窗
+  const openEditPetModal = (pet: SeaPet) => {
+    setEditingPet(pet);
+    setPetForm({
+      id: pet.id,
+      name: pet.name,
+      stages: [...pet.stages],
+    });
+    setPetModalVisible(true);
+  };
+
+  // 处理图片上传
+  const handleImageUpload = async (file: File, stageIndex: number) => {
+    try {
+      const base64 = await fileToBase64(file);
+      const newStages = [...petForm.stages];
+      newStages[stageIndex] = base64;
+      setPetForm({ ...petForm, stages: newStages });
+      message.success('图片上传成功');
+      return false; // 阻止默认上传行为
+    } catch (error) {
+      message.error('图片上传失败');
+      return false;
+    }
+  };
+
+  // 处理使用 emoji
+  const handleUseEmoji = (stageIndex: number, emoji: string) => {
+    const newStages = [...petForm.stages];
+    newStages[stageIndex] = emoji;
+    setPetForm({ ...petForm, stages: newStages });
+  };
+
+  // 保存宠物
+  const handleSavePet = () => {
+    if (!petForm.name.trim()) {
+      message.error('请输入宠物名称');
+      return;
+    }
+    if (petForm.stages.some(s => !s)) {
+      message.error('请为每个阶段设置图片或表情');
+      return;
+    }
+
+    const pet: SeaPet = {
+      id: petForm.id,
+      name: petForm.name.trim(),
+      stages: petForm.stages,
+      type: petForm.stages[0].startsWith('data:image') ? 'image' : 'emoji',
+    };
+
+    if (editingPet) {
+      updateCustomPet(editingPet.id, pet);
+      message.success('宠物更新成功');
+    } else {
+      addCustomPet(pet);
+      message.success('宠物添加成功');
+    }
+    setPetModalVisible(false);
+  };
+
+  // 处理删除宠物
+  const handleDeletePet = (petId: string, petName: string) => {
+    // 检查是否有学生正在使用这个宠物
+    const isInUse = classData.students.some(s => 
+      s.pets.some(p => p.petId === petId)
+    );
+    
+    if (isInUse) {
+      message.error(`无法删除 "${petName}"，有学生正在使用这个宠物`);
+      return;
+    }
+
+    Modal.confirm({
+      title: '确认删除',
+      content: `确定要删除宠物 "${petName}" 吗？此操作不可恢复。`,
+      okText: '删除',
+      okType: 'danger',
+      cancelText: '取消',
+      onOk: () => {
+        deleteCustomPet(petId);
+        message.success('宠物已删除');
+      },
+    });
   };
 
   const studentColumns = [
@@ -197,6 +315,10 @@ const Setup = ({ currentUser }: SetupProps) => {
       ),
     },
   ];
+
+  // 获取所有宠物（内置 + 自定义）
+  const allPets = getAllPets();
+  const customPets = classData.customPets || [];
 
   return (
     <div className={styles.container}>
@@ -282,6 +404,62 @@ const Setup = ({ currentUser }: SetupProps) => {
                 />
               </Card>
             ))}
+          </div>
+        </Card>
+
+        {/* 宠物管理 */}
+        <Card className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <Title level={4}>🐠 宠物管理</Title>
+            <Button icon={<PlusOutlined />} onClick={openAddPetModal}>
+              添加宠物
+            </Button>
+          </div>
+          <Text type="secondary">自定义宠物类型，支持上传图片或使用表情符号</Text>
+          
+          <div className={styles.petsGrid}>
+            {/* 显示所有宠物 */}
+            {allPets.map((pet) => {
+              const isCustom = customPets.some(cp => cp.id === pet.id);
+              return (
+                <Card key={pet.id} className={styles.petCard} size="small">
+                  <div className={styles.petPreview}>
+                    {pet.stages.map((stage, idx) => (
+                      <div key={idx} className={styles.petStage}>
+                        {stage.startsWith('data:image') ? (
+                          <img src={stage} alt={`阶段${idx + 1}`} />
+                        ) : (
+                          <span className={styles.petEmoji}>{stage}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <div className={styles.petInfo}>
+                    <div className={styles.petName}>
+                      {pet.name}
+                      {isCustom && <span className={styles.customTag}>自定义</span>}
+                    </div>
+                  </div>
+                  {isCustom && (
+                    <Space className={styles.petActions}>
+                      <Button
+                        type="text"
+                        size="small"
+                        icon={<EditOutlined />}
+                        onClick={() => openEditPetModal(pet)}
+                      />
+                      <Button
+                        type="text"
+                        danger
+                        size="small"
+                        icon={<DeleteOutlined />}
+                        onClick={() => handleDeletePet(pet.id, pet.name)}
+                      />
+                    </Space>
+                  )}
+                </Card>
+              );
+            })}
           </div>
         </Card>
 
@@ -604,6 +782,76 @@ const Setup = ({ currentUser }: SetupProps) => {
               ))}
             </Space>
           </Radio.Group>
+        </Space>
+      </Modal>
+
+      {/* 宠物管理弹窗 */}
+      <Modal
+        title={editingPet ? `编辑宠物 - ${editingPet.name}` : '添加宠物'}
+        open={petModalVisible}
+        onOk={handleSavePet}
+        onCancel={() => setPetModalVisible(false)}
+        width={700}
+        okText="保存"
+        cancelText="取消"
+      >
+        <Space direction="vertical" style={{ width: '100%' }}>
+          <div>
+            <label>宠物名称</label>
+            <Input
+              value={petForm.name}
+              onChange={(e) => setPetForm({ ...petForm, name: e.target.value })}
+              placeholder="例如：小海豚"
+            />
+          </div>
+          
+          <div className={styles.petStagesSection}>
+            <label>各阶段图片/表情</label>
+            <Text type="secondary">为每个成长阶段设置展示图片或表情符号</Text>
+            
+            <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+              {STAGE_NAMES.map((stageName, index) => (
+                <Col span={12} key={index}>
+                  <Card size="small" title={stageName}>
+                    <div className={styles.stagePreview}>
+                      {petForm.stages[index] ? (
+                        petForm.stages[index].startsWith('data:image') ? (
+                          <img 
+                            src={petForm.stages[index]} 
+                            alt={stageName} 
+                            className={styles.stagePreviewImage}
+                          />
+                        ) : (
+                          <span className={styles.stagePreviewEmoji}>{petForm.stages[index]}</span>
+                        )
+                      ) : (
+                        <span className={styles.stagePlaceholder}>未设置</span>
+                      )}
+                    </div>
+                    
+                    <Space direction="vertical" style={{ width: '100%' }}>
+                      <Upload
+                        accept="image/*"
+                        showUploadList={false}
+                        beforeUpload={(file) => handleImageUpload(file, index)}
+                      >
+                        <Button icon={<UploadOutlined />} size="small" block>
+                          上传图片
+                        </Button>
+                      </Upload>
+                      
+                      <Input
+                        placeholder="或输入表情"
+                        size="small"
+                        value={petForm.stages[index] && !petForm.stages[index].startsWith('data:image') ? petForm.stages[index] : ''}
+                        onChange={(e) => handleUseEmoji(index, e.target.value)}
+                      />
+                    </Space>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+          </div>
         </Space>
       </Modal>
     </div>

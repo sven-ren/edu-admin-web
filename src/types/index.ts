@@ -24,7 +24,7 @@ export interface RegisterFormData {
 export interface SeaPet {
   id: string;
   name: string;
-  stages: string[]; // emoji 数组或图片路径数组
+  stages: string[]; // emoji 数组或 base64 图片数组
   type?: "emoji" | "image"; // 宠物展示类型
 }
 
@@ -83,6 +83,7 @@ export interface ClassData {
   nextGroupId: number;
   nextRewardId: number;
   nextPetId: number;
+  customPets?: SeaPet[]; // 自定义宠物列表
 }
 
 // ==================== 历史记录 ====================
@@ -102,49 +103,17 @@ export interface AppState {
 }
 
 // ==================== 常量 ====================
-export const SEA_PETS: SeaPet[] = [
+// 默认内置宠物，使用 emoji 或图片路径
+export const DEFAULT_SEA_PETS: SeaPet[] = [
   { id: "clownfish", name: "小丑鱼", stages: ["🥚", "🐣", "🐟", "🐠", "🎓"] },
-  {
-    id: "dolphin",
-    name: "海豚",
-    stages: [
-      "/src/imgs/dolphin1.jpg",
-      "/src/imgs/dolphin2.jpg",
-      "/src/imgs/dolphin3.jpg",
-      "/src/imgs/dolphin4.jpg",
-      "/src/imgs/dolphin5.jpg",
-    ],
-    type: "image",
-  },
   { id: "turtle", name: "海龟", stages: ["🥚", "🐢", "🐢🌊", "🐢✨", "🎓"] },
   { id: "octopus", name: "章鱼", stages: ["🥚", "🐙", "🐙🌟", "🐙✨", "🎓"] },
   { id: "seahorse", name: "海马", stages: ["🥚", "🪼", "🪼🌿", "🪼✨", "🎓"] },
   { id: "whale", name: "鲸鱼", stages: ["🥚", "🐋", "🐋💦", "🐋✨", "🎓"] },
-  {
-    id: "jellyfish",
-    name: "水母",
-    stages: [
-      "/src/imgs/jellyfish1.jpg",
-      "/src/imgs/jellyfish2.jpg",
-      "/src/imgs/jellyfish3.jpg",
-      "/src/imgs/jellyfish4.jpg",
-      "/src/imgs/jellyfish5.jpg",
-    ],
-    type: "image",
-  },
-  {
-    id: "shark",
-    name: "鲨鱼",
-    stages: [
-      "/src/imgs/dolphin1.jpg",
-      "/src/imgs/dolphin2.jpg",
-      "/src/imgs/dolphin3.jpg",
-      "/src/imgs/dolphin4.jpg",
-      "/src/imgs/dolphin5.jpg",
-    ],
-    type: "image",
-  },
 ];
+
+// 为向后兼容保留
+export const SEA_PETS: SeaPet[] = DEFAULT_SEA_PETS;
 
 export const DEFAULT_STAGE_THRESHOLDS = [10, 20, 30, 40, 50];
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Button, Input, Card, Tag, message, Space, Badge, Modal, Radio } from 'antd';
+import { Button, Input, Card, Tag, message, Space, Badge, Modal, Radio, Avatar } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { storageService } from '@/services/storage';
 import { useClassData } from '@/hooks/useClassData';
@@ -8,7 +8,7 @@ import Header from '@/components/Header';
 import ShopModal from '@/components/Modals/ShopModal';
 import RankingModal from '@/components/Modals/RankingModal';
 import { getPetProgress, getPetStageDisplay } from '@/utils/helpers';
-import { SEA_PETS } from '@/types';
+
 import type { Student, Pet } from '@/types';
 import styles from './style.module.scss';
 
@@ -31,6 +31,7 @@ const Dashboard = ({ currentUser, onLogout }: DashboardProps) => {
     batchAdjustPoints,
     addPet,
     redeemReward,
+    getAllPets,
   } = useClassData();
 
   const [currentGroupId, setCurrentGroupId] = useState<number | 'all'>('all');
@@ -120,14 +121,17 @@ const Dashboard = ({ currentUser, onLogout }: DashboardProps) => {
 
   const handleAddNewPet = (studentId: number) => {
     setAdoptingStudentId(studentId);
-    setSelectedPetType(SEA_PETS[0].id);
+    const allPets = getAllPets();
+    if (allPets.length > 0) {
+      setSelectedPetType(allPets[0].id);
+    }
     setSelectPetModalVisible(true);
   };
 
   const handleConfirmAdoptPet = () => {
     if (!adoptingStudentId || !selectedPetType) return;
     
-    const petData = SEA_PETS.find(p => p.id === selectedPetType);
+    const petData = getAllPets().find(p => p.id === selectedPetType);
     addPet(adoptingStudentId, selectedPetType);
     saveClass(currentUser);
     message.success(`成功领养 ${petData?.name}！`);
@@ -295,7 +299,9 @@ const Dashboard = ({ currentUser, onLogout }: DashboardProps) => {
               <>
                 <div className={styles.studentHeader}>
                   <div className={styles.studentInfo}>
-                    <div className={styles.bigAvatar}>{selectedStudent.avatar}</div>
+                    <Avatar size={60} style={{ backgroundColor: '#1677ff', flexShrink: 0 }}>
+                      {selectedStudent.name.charAt(0)}
+                    </Avatar>
                     <div>
                       <h2>
                         {selectedStudent.name}
@@ -334,6 +340,7 @@ const Dashboard = ({ currentUser, onLogout }: DashboardProps) => {
                         thresholds={classData.stageThresholds}
                         actionItems={classData.actionItems}
                         onFeed={(points) => handleFeedPet(selectedStudent.id, index, points)}
+                        allPets={getAllPets()}
                       />
                     ))}
                   </div>
@@ -437,9 +444,9 @@ const Dashboard = ({ currentUser, onLogout }: DashboardProps) => {
           style={{ width: '100%' }}
         >
           <Space direction="vertical" style={{ width: '100%' }}>
-            {SEA_PETS.map(pet => {
+            {getAllPets().map(pet => {
               const stageValue = pet.stages[1];
-              const isImage = stageValue.startsWith('/');
+              const isImage = stageValue.startsWith('/') || stageValue.startsWith('data:image');
               return (
                 <Radio key={pet.id} value={pet.id} style={{ display: 'flex', alignItems: 'center', padding: '8px 0' }}>
                   {isImage ? (
@@ -477,7 +484,9 @@ const StudentItem = ({ student, isSelected, onClick }: StudentItemProps) => {
       className={`${styles.studentItem} ${isSelected ? styles.selected : ''}`}
       onClick={onClick}
     >
-      <div className={styles.studentAvatar}>{student.avatar}</div>
+      <Avatar size={36} style={{ marginRight: 12, backgroundColor: '#1677ff', flexShrink: 0 }}>
+        {student.name.charAt(0)}
+      </Avatar>
       <div className={styles.studentDetail}>
         <div className={styles.studentNameRow}>
           <span className={styles.studentName}>{student.name}</span>
@@ -498,10 +507,10 @@ interface PetCardProps {
   onFeed: (points: number) => void;
 }
 
-const PetCard = ({ pet, thresholds, actionItems, onFeed }: PetCardProps) => {
-  const petData = SEA_PETS.find(p => p.id === pet.petId);
+const PetCard = ({ pet, thresholds, actionItems, onFeed, allPets }: PetCardProps & { allPets: import('@/types').SeaPet[] }) => {
+  const petData = allPets.find(p => p.id === pet.petId);
   const progress = getPetProgress(pet, thresholds);
-  const stageDisplay = getPetStageDisplay(pet);
+  const stageDisplay = getPetStageDisplay(pet, allPets);
   const [feedModalVisible, setFeedModalVisible] = useState(false);
   
   // 根据阶段获取动画类名
