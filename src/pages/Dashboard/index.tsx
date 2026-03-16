@@ -325,25 +325,35 @@ const Dashboard = ({ currentUser, onLogout }: DashboardProps) => {
                 <div className={styles.aquarium}>
                   <div className={styles.aquariumHeader}>
                     <h3>🐟 {selectedStudent.name}的海族馆</h3>
-                    {selectedStudent.pets.every(p => p.graduated) && (
+                    {(selectedStudent.pets.length === 0 || selectedStudent.pets.every(p => p.graduated)) && (
                       <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => handleAddNewPet(selectedStudent.id)}>
-                        领养新宠物
+                        {selectedStudent.pets.length === 0 ? '领养宠物' : '领养新宠物'}
                       </Button>
                     )}
                   </div>
                   
-                  <div className={styles.petsGrid}>
-                    {selectedStudent.pets.map((pet, index) => (
-                      <PetCard
-                        key={pet.id}
-                        pet={pet}
-                        thresholds={classData.stageThresholds}
-                        actionItems={classData.actionItems}
-                        onFeed={(points) => handleFeedPet(selectedStudent.id, index, points)}
-                        allPets={getAllPets()}
-                      />
-                    ))}
-                  </div>
+                  {selectedStudent.pets.length > 0 ? (
+                    <div className={styles.petsGrid}>
+                      {selectedStudent.pets.map((pet, index) => (
+                        <PetCard
+                          key={pet.id}
+                          pet={pet}
+                          thresholds={classData.stageThresholds}
+                          actionItems={classData.actionItems}
+                          onFeed={(points) => handleFeedPet(selectedStudent.id, index, points)}
+                          allPets={getAllPets()}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className={styles.emptyPets}>
+                      <div className={styles.emptyPetsIcon}>🥚</div>
+                      <p>还没有宠物哦</p>
+                      <Button type="primary" icon={<PlusOutlined />} onClick={() => handleAddNewPet(selectedStudent.id)}>
+                        领养第一只宠物
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </>
             ) : (

@@ -232,6 +232,13 @@
   }
 }
 
+.batchImportRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 .addStudentRow {
   display: flex;
   gap: 10px;

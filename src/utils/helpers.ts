@@ -122,29 +122,17 @@ export const createDefaultClassData = (className: string): ClassData => {
 export const createNewStudent = (
   name: string, 
   studentId: number, 
-  petId: number,
-  groupId: number | null = null,
-  allPets?: SeaPet[]
+  groupId: number | null = null
 ): Student => {
-  const pets = allPets || DEFAULT_SEA_PETS;
-  const randomPet = getRandomPet(pets);
   return {
     id: studentId,
     name: name.trim(),
     groupId,
-    avatar: randomPet.stages[0],
+    avatar: '👤',
     points: 0,
     badges: [],
     availableBadges: 0,
-    pets: [{
-      id: petId,
-      petId: randomPet.id,
-      name: randomPet.name,
-      customName: `${name.trim()}的${randomPet.name}`,
-      growth: 0,
-      stage: 0,
-      graduated: false,
-    }],
+    pets: [], // 默认没有宠物
   };
 };
 

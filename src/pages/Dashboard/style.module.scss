@@ -418,6 +418,31 @@
   }
 }
 
+// 空宠物状态
+.emptyPets {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 50px 20px;
+  background: $bg-light;
+  border-radius: 16px;
+  border: 2px dashed $border-color;
+  text-align: center;
+
+  .emptyPetsIcon {
+    font-size: 4rem;
+    margin-bottom: 15px;
+    opacity: 0.5;
+  }
+
+  p {
+    color: $text-secondary;
+    margin-bottom: 20px;
+    font-size: 1rem;
+  }
+}
+
 .petsGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -687,6 +712,9 @@
   background: $white;
   border-radius: 40px;
   border: 1px solid $border-color;
+  position: sticky;
+  bottom: 20px;
+  z-index: 999;
 }
 
 .navItem {

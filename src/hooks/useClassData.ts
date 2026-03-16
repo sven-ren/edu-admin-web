@@ -11,7 +11,7 @@ interface UseClassDataReturn {
   createClass: (username: string, className: string) => ClassData | null;
   saveClass: (username: string) => void;
   addStudent: (name: string, groupId?: number | null) => void;
-  batchAddStudents: (names: string[]) => void;
+  batchAddStudents: (names: string[], groupId?: number | null) => void;
   deleteStudent: (studentId: number) => void;
   editStudent: (studentId: number, newName: string) => void;
   addGroup: (name: string, icon: string) => void;
@@ -94,7 +94,7 @@ export const useClassData = (): UseClassDataReturn => {
   const addStudent = useCallback((name: string, groupId?: number | null): void => {
     if (!classData) return;
     
-    const newStudent = createNewStudent(name, classData.nextStudentId, classData.nextPetId, groupId, getAllPets());
+    const newStudent = createNewStudent(name, classData.nextStudentId, groupId);
     
     setClassData(prev => {
       if (!prev) return null;
@@ -102,23 +102,20 @@ export const useClassData = (): UseClassDataReturn => {
         ...prev,
         students: [...prev.students, newStudent],
         nextStudentId: prev.nextStudentId + 1,
-        nextPetId: prev.nextPetId + 1,
       };
     });
   }, [classData]);
 
-  const batchAddStudents = useCallback((names: string[]): void => {
+  const batchAddStudents = useCallback((names: string[], groupId?: number | null): void => {
     if (!classData) return;
 
     const newStudents: Student[] = [];
     let nextStudentId = classData.nextStudentId;
-    let nextPetId = classData.nextPetId;
 
     names.forEach(name => {
       if (name.trim()) {
-        newStudents.push(createNewStudent(name.trim(), nextStudentId, nextPetId, null, getAllPets()));
+        newStudents.push(createNewStudent(name.trim(), nextStudentId, groupId ?? null));
         nextStudentId++;
-        nextPetId++;
       }
     });
 
@@ -128,7 +125,6 @@ export const useClassData = (): UseClassDataReturn => {
         ...prev,
         students: [...prev.students, ...newStudents],
         nextStudentId,
-        nextPetId,
       };
     });
   }, [classData]);

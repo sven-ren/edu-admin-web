@@ -51,6 +51,7 @@ const Setup = ({ currentUser }: SetupProps) => {
   } = useClassData();
 
   const [batchNames, setBatchNames] = useState('');
+  const [batchImportGroupId, setBatchImportGroupId] = useState<number | null>(null);
   const [newStudentName, setNewStudentName] = useState('');
   const [newStudentGroupId, setNewStudentGroupId] = useState<number | null>(null);
   const [newGroupName, setNewGroupName] = useState('');
@@ -113,8 +114,9 @@ const Setup = ({ currentUser }: SetupProps) => {
       message.error('请输入学生姓名');
       return;
     }
-    batchAddStudents(names);
+    batchAddStudents(names, batchImportGroupId);
     setBatchNames('');
+    setBatchImportGroupId(null);
     message.success(`成功导入 ${names.length} 名学生`);
   };
 
@@ -339,31 +341,6 @@ const Setup = ({ currentUser }: SetupProps) => {
           />
         </Card>
 
-        {/* 成长阶段配置 */}
-        <Card className={styles.section}>
-          <Title level={4}>📈 成长阶段配置</Title>
-          <div className={styles.stageInputs}>
-            {stageInputs.map((value, index) => (
-              <div key={index} className={styles.stageInput}>
-                <label>{index + 1}级</label>
-                <Input
-                  type="number"
-                  value={value}
-                  onChange={(e) => {
-                    const newInputs = [...stageInputs];
-                    newInputs[index] = parseInt(e.target.value) || 0;
-                    setStageInputs(newInputs);
-                  }}
-                  min={1}
-                />
-              </div>
-            ))}
-          </div>
-          <div className={styles.tip}>
-            💡 示例：阶段配置为（10,20,30,40,50）时，学生累计10份食物升到1级，累计50份食物升到5级（毕业）
-          </div>
-        </Card>
-
         {/* 加分/扣分项目 */}
         <Card className={styles.section}>
           <div className={styles.sectionHeader}>
@@ -463,6 +440,31 @@ const Setup = ({ currentUser }: SetupProps) => {
           </div>
         </Card>
 
+        {/* 成长阶段配置 */}
+        <Card className={styles.section}>
+          <Title level={4}>📈 成长阶段配置</Title>
+          <div className={styles.stageInputs}>
+            {stageInputs.map((value, index) => (
+              <div key={index} className={styles.stageInput}>
+                <label>{index + 1}级</label>
+                <Input
+                  type="number"
+                  value={value}
+                  onChange={(e) => {
+                    const newInputs = [...stageInputs];
+                    newInputs[index] = parseInt(e.target.value) || 0;
+                    setStageInputs(newInputs);
+                  }}
+                  min={1}
+                />
+              </div>
+            ))}
+          </div>
+          <div className={styles.tip}>
+            💡 示例：阶段配置为（10,20,30,40,50）时，学生累计10份食物升到1级，累计50份食物升到5级（毕业）
+          </div>
+        </Card>
+
         {/* 学生名单 */}
         <Card className={styles.section}>
           <Title level={4}>📋 学生名单</Title>
@@ -475,9 +477,27 @@ const Setup = ({ currentUser }: SetupProps) => {
               placeholder="例如：&#10;张三&#10;李四&#10;王五"
               rows={3}
             />
-            <Button type="primary" onClick={handleBatchImport}>
-              批量导入
-            </Button>
+            <div className={styles.batchImportRow}>
+              {classData.groupsEnabled && classData.groups.length > 0 && (
+                <Select
+                  value={batchImportGroupId}
+                  onChange={(value) => setBatchImportGroupId(value)}
+                  placeholder="选择分组（可选）"
+                  style={{ width: 200 }}
+                  allowClear
+                >
+                  <Select.Option value={null}>未分组</Select.Option>
+                  {classData.groups.map(group => (
+                    <Select.Option key={group.id} value={group.id}>
+                      {group.icon} {group.name}
+                    </Select.Option>
+                  ))}
+                </Select>
+              )}
+              <Button type="primary" onClick={handleBatchImport}>
+                批量导入
+              </Button>
+            </div>
           </div>
 
           <div className={styles.addStudentRow}>
