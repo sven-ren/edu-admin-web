@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        nodejs 'NodeJS-20'   // 与全局工具配置中的名称一致
+        nodejs 'NodeJs-20'   // 与全局工具配置中的名称一致
     }
 
     environment {
