@@ -14,6 +14,7 @@ const Header = ({ username, className, onSwitchClass, onLogout }: HeaderProps) =
   const navigate = useNavigate();
 
   const handleLogoClick = () => {
+    console.log("xxx")
     if (onSwitchClass) {
       onSwitchClass();
     } else {
