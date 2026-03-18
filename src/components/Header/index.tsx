@@ -25,7 +25,7 @@ const Header = ({ username, className, onSwitchClass, onLogout }: HeaderProps) =
     <header className={styles.header}>
       <div className={styles.logo} onClick={handleLogoClick}>
         <span className={styles.logoIcon}>🐋</span>
-        <span className={styles.logoText}>海洋班级园1</span>
+        <span className={styles.logoText}>海洋班级园</span>
       </div>
       
       <div className={styles.userMenu}>
